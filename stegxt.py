@@ -4,6 +4,11 @@ from nltk.corpus import wordnet
 
 def synset_to_word(ss):
     return ss.name.split('.')[0]
+
+def replace(sentence, index, replword):
+    new_sentence = sentence[:]
+    new_sentence[index] = replword
+    return new_sentence
 	
 def ngrams(sentence, n, i):
 	list_of_phrases = []
