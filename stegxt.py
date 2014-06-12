@@ -1,5 +1,6 @@
 import nltk
 import random
+import math
 from nltk.corpus import wordnet
 from nltk.corpus import brown
 
@@ -20,12 +21,13 @@ def ngrams(sentence, n, i):
 	
 def score(sentence, i):
 	word_score = 0
-	for j in range(2, 6):
+	for j in range(2, 10):
 		sentence_ngrams = ngrams(sentence, j, i)
 		temp_score = 0
 		for k in range(0, len(sentence_ngrams)):
 			temp_score += frequency(sentence_ngrams[k])
-		word_score += log(temp_score)
+		if (temp_score <= 0): break
+		word_score += math.log(temp_score)
 	return word_score
 	
 def contains_sublist(lst, sublst):
