@@ -1,25 +1,26 @@
 import nltk;
 import random;
-
-origText = open('warofroses.txt', 'r');
-stegText = open('warofposes.txt', 'w');
-
-wholePaper = origText.read();
-
-sepWords = nltk.word_tokenize(wholePaper);
-
 from nltk.corpus import wordnet
 
-for word in sepWords:
-    synSet = wordnet.synsets(word);
-    if(len(synSet) > 0):
-        rIdx = random.randint(0, len(synSet) - 1);
-        print synSet[rIdx].name.split('.')[0]
-        stegText.write(synSet[rIdx].name.split('.')[0] + ' ');
+def synset_to_word(ss):
+    return ss.name.split('.')[0]
+
+orig_text = open('warofroses.txt', 'r');
+steg_text = open('warofposes.txt', 'w');
+
+words = nltk.word_tokenize(orig_text.read());
+
+for word in words:
+    synsets = wordnet.synsets(word);
+    if len(synsets) > 0:
+        rand_idx = random.randint(0, len(synsets) - 1);
+        rand_synset = synsets[rand_idx]
+        print synset_to_word(rand_synset)
+        steg_text.write(synset_to_word(rand_synset) + ' ')
     else:
-        stegText.write(word + ' ');
+        steg_text.write(word + ' ')
 
 print 'done'
 
-origText.close();
-stegText.close();
+orig_text.close()
+steg_text.close()
