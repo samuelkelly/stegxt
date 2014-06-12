@@ -4,6 +4,11 @@ from nltk.corpus import wordnet
 
 def synset_to_word(ss):
     return ss.name.split('.')[0]
+
+def replace(sentence, index, replword):
+    new_sentence = sentence[:]
+    new_sentence[index] = replword
+    return new_sentence
 	
 def ngrams(sentence, n, i):
 	list_of_phrases = []
@@ -11,6 +16,16 @@ def ngrams(sentence, n, i):
 		list_of_phrases.append(sentence[j + i - n + 1:j + i + 1])
 	
 	return filter(lambda phrase: phrase != [], list_of_phrases)
+	
+def score(sentence, i):
+	word_score = 0
+	for j in range(2, 6):
+		sentence_ngrams = ngrams(sentence, j, i)
+		temp_score = 0
+		for k in range(0, len(sentence_ngrams)):
+			temp_score += frequency(sentence_ngrams[k])
+		word_score += log(temp_score)
+	return word_score
 	
 orig_text = open('warofroses.txt', 'r');
 steg_text = open('warofposes.txt', 'w');
