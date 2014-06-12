@@ -1,6 +1,7 @@
 import nltk
 import random
 from nltk.corpus import wordnet
+from nltk.corpus import brown
 
 def synset_to_word(ss):
     return ss.name.split('.')[0]
@@ -11,12 +12,19 @@ def replace(sentence, index, replword):
     return new_sentence
 	
 def ngrams(sentence, n, i):
-	list_of_phrases = []
-	for j in range(0, n):
-		list_of_phrases.append(sentence[j + i - n + 1:j + i + 1])
+    list_of_phrases = []
+    for j in range(0, n):
+        list_of_phrases.append(sentence[j + i - n + 1:j + i + 1])
 	
-	return filter(lambda phrase: phrase != [], list_of_phrases)
+    return filter(lambda phrase: phrase != [], list_of_phrases)
 	
+def contains_sublist(lst, sublst):
+    n = len(sublst)
+    return any((sublst == lst[i:i+n]) for i in xrange(len(lst)-n+1))
+
+def frequency(ngram):
+    return len([s for s in brown.sents() if contains_sublist(s, ngram)])
+
 orig_text = open('warofroses.txt', 'r');
 steg_text = open('warofposes.txt', 'w');
 
