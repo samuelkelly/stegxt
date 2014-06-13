@@ -37,6 +37,10 @@ def frequency(ngram):
     else:
         return len([s for s in brown.sents() if contains_sublist(s, ngram)])
 
+def list_syn(word):
+    synsets = wordnet.synsets(word)
+    return map (synset_to_word, synsets)
+
 if __name__ == "__main__":
     orig_text = open('warofroses.txt', 'r');
     steg_text = open('warofposes.txt', 'w');
