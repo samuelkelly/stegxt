@@ -12,47 +12,48 @@ def replace(sentence, index, replword):
     new_sentence[index] = replword
     return new_sentence
 	
-def ngrams(sentence, n, i):
-    list_of_phrases = []
-    for j in range(0, n):
-        list_of_phrases.append(sentence[j + i - n + 1:j + i + 1])
-	
-    return filter(lambda phrase: phrase != [], list_of_phrases)
-	
+def ngrams(sentence, n, center):
+    if n > len(sentence):
+        return [[]]
+    elif n == len(sentence):
+        return [sentence[:]]
+    else:
+        return [sentence[start:start+n] 
+                for start in range(max(0, center - n + 1), min(center + 1, len(sentence) - n + 1))]
+
 def score(sentence, i):
-	word_score = 0
-	for j in range(2, 10):
-		sentence_ngrams = ngrams(sentence, j, i)
-		temp_score = 0
-		for k in range(0, len(sentence_ngrams)):
-			temp_score += frequency(sentence_ngrams[k])
-		if (temp_score <= 0): break
-		word_score += math.log(temp_score)
-	return word_score
-	
+    return sum( [math.log(max(1, frequency(ng))) # 0 occurences contributes 0 to score
+                 for n in range(2,6)
+                 for ng in ngrams(sentence, n, i)] )
+
 def contains_sublist(lst, sublst):
     n = len(sublst)
     return any((sublst == lst[i:i+n]) for i in xrange(len(lst)-n+1))
 
 def frequency(ngram):
-    return len([s for s in brown.sents() if contains_sublist(s, ngram)])
-
-orig_text = open('warofroses.txt', 'r');
-steg_text = open('warofposes.txt', 'w');
-
-words = nltk.word_tokenize(orig_text.read())
-
-for word in words:
-    synsets = wordnet.synsets(word)
-    if len(synsets) > 0:
-        rand_idx = random.randint(0, len(synsets) - 1)
-        rand_synset = synsets[rand_idx]
-        #print synset_to_word(rand_synset)
-        steg_text.write(synset_to_word(rand_synset) + ' ')
+    """The frequency of any ngram in the corpus."""
+    if ngram == []:
+        return 0
     else:
-        steg_text.write(word + ' ')
+        return len([s for s in brown.sents() if contains_sublist(s, ngram)])
 
-print 'done'
+if __name__ == "__main__":
+    orig_text = open('warofroses.txt', 'r');
+    steg_text = open('warofposes.txt', 'w');
 
-orig_text.close()
-steg_text.close()
+    words = nltk.word_tokenize(orig_text.read())
+
+    for word in words:
+        synsets = wordnet.synsets(word)
+        if len(synsets) > 0:
+            rand_idx = random.randint(0, len(synsets) - 1)
+            rand_synset = synsets[rand_idx]
+            #print synset_to_word(rand_synset)
+            steg_text.write(synset_to_word(rand_synset) + ' ')
+        else:
+            steg_text.write(word + ' ')
+
+    print 'done'
+
+    orig_text.close()
+    steg_text.close()
