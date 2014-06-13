@@ -37,6 +37,18 @@ def frequency(ngram):
     else:
         return len([s for s in brown.sents() if contains_sublist(s, ngram)])
 
+def best_synonym(sentence, i):
+    max_score = 0
+    for synonym in list_syn(sentence[i]):
+        s = score(replace(sentence, i, synonym), i)
+        if s > max_score:
+            max_score = s
+            best_syn = synonym
+    if max_score == 0:
+        return sentence[i]
+    else:
+        return best_syn
+
 if __name__ == "__main__":
     orig_text = open('warofroses.txt', 'r');
     steg_text = open('warofposes.txt', 'w');
