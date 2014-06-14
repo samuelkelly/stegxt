@@ -2,7 +2,8 @@ import nltk
 import random
 import math
 from nltk.corpus import wordnet
-from nltk.corpus import brown
+import re
+import requests
 
 def synset_to_word(ss):
     return ss.name.split('.')[0]
@@ -19,39 +20,54 @@ def ngrams(sentence, n, center):
         return [sentence[:]]
     else:
         return [sentence[start:start+n] 
-                for start in range(max(0, center - n + 1), min(center + 1, len(sentence) - n + 1))]
+                for start in range(max(0, center - n + 1), 
+                                   min(center + 1, len(sentence) - n + 1))]
 
 def score(sentence, i):
-    return sum( [math.log(max(1, frequency(ng))) # 0 occurences contributes 0 to score
+    return sum( [math.log(max(1, frequency(ng))) # 0 occurrences adds 0 to score
                  for n in range(2,6)
                  for ng in ngrams(sentence, n, i)] )
 
-def contains_sublist(lst, sublst):
-    n = len(sublst)
-    return any((sublst == lst[i:i+n]) for i in xrange(len(lst)-n+1))
-
 def frequency(ngram):
-    """The frequency of any ngram in the corpus."""
     if ngram == []:
         return 0
+    url = "https://books.google.com/ngrams/graph?content=" + \
+          "+".join(ngram) + \
+          "&year_start=1999&year_end=2000&corpus=15&smoothing=3"
+    html = requests.get(url).text
+    r = re.compile('.*(\d\.(\d)+e\-\d\d)\], "parent":.*', re.DOTALL)
+    m = r.match(html)
+    if m:
+        return float(m.group(1)) * 11190986329.0
     else:
-        return len([s for s in brown.sents() if contains_sublist(s, ngram)])
+        return 0
 
 def best_synonym(sentence, i):
-    max_score = 0
-    for synonym in list_syn(sentence[i]):
-        s = score(replace(sentence, i, synonym), i)
-        if s > max_score:
-            max_score = s
-            best_syn = synonym
-    if max_score == 0:
+    (best_syn, best_score) = best(lambda syn: score(replace(sentence, i, syn), i),
+                                  synonyms(sentence[i]))
+    if best_syn == None:
         return sentence[i]
     else:
-        return best_syn
+        return (best_syn, best_score)
 
-def list_syn(word):
-    synsets = wordnet.synsets(word)
-    return map (synset_to_word, synsets)
+def synonyms(word):
+    syns = []
+    for synset in wordnet.synsets(word):
+        syns += synset.lemma_names
+    return list(set(syns)) # remove duplicates
+
+def best(fn, lst):
+    if lst == []:
+        return None
+    else:
+        winner = lst[0]
+        max_score = fn(winner)
+        for obj in lst[1:]:
+            score = fn(obj)
+            if score > max_score:
+                winner = obj
+                max_score = score
+        return (winner, max_score)
 
 if __name__ == "__main__":
     orig_text = open('warofroses.txt', 'r');
@@ -73,3 +89,14 @@ if __name__ == "__main__":
 
     orig_text.close()
     steg_text.close()
+
+# def contains_sublist(lst, sublst):
+#     n = len(sublst)
+#     return any((sublst == lst[i:i+n]) for i in xrange(len(lst)-n+1))
+#
+# def oldfrequency(ngram):
+#     """The frequency of any ngram in the corpus."""
+#     if ngram == []:
+#         return 0
+#     else:
+#         return len([s for s in brown.sents() if contains_sublist(s, ngram)])
