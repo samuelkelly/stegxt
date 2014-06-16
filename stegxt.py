@@ -23,17 +23,29 @@ def ngrams(sentence, n, center):
                 for start in range(max(0, center - n + 1), 
                                    min(center + 1, len(sentence) - n + 1))]
 
-def score(sentence, i):
+def oldscore(sentence, i):
     return sum( [math.log(max(1, frequency(ng))) # 0 occurrences adds 0 to score
                  for n in range(2,6)
                  for ng in ngrams(sentence, n, i)] )
+
+def score(sentence, i):
+    word_score = 0
+    for j in range(2, 6):
+        sentence_ngrams = ngrams(sentence, j, i)
+        temp_score = 0
+        for k in range(0, len(sentence_ngrams)):
+            temp_score += frequency(sentence_ngrams[k])
+        if (temp_score <= 0):
+            break
+        word_score += math.log(temp_score)
+    return word_score
 
 def frequency(ngram):
     if ngram == []:
         return 0
     url = "https://books.google.com/ngrams/graph?content=" + \
           "+".join(ngram) + \
-          "&year_start=1999&year_end=2000&corpus=15&smoothing=3"
+          "&case_insensitive=on&year_start=1999&year_end=2000&corpus=15&smoothing=3"
     html = requests.get(url).text
     r = re.compile('.*(\d\.(\d)+e\-\d\d)\], "parent":.*', re.DOTALL)
     m = r.match(html)
@@ -55,6 +67,10 @@ def synonyms(word):
     for synset in wordnet.synsets(word):
         syns += synset.lemma_names
     return list(set(syns)) # remove duplicates
+
+def synonyms_with_scores(sentence, i):
+    return [(syn, score(replace(sentence, i, syn), i))
+            for syn in synonyms(sentence[i])]
 
 def best(fn, lst):
     if lst == []:
