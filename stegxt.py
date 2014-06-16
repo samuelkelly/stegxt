@@ -69,6 +69,9 @@ def viable_synonyms(sentence, i):
 	for syn in syn_list:
 		if syn[1] > max_count:
 			max_count = syn[1]
+	if max_count == 0:
+		print "could not connect to Google"
+		return
 	for syn in syn_list:
 		syn[1] /= max_count
 		if syn[1] > .85: # this is the threshold check. it should probably be global or something?
@@ -82,7 +85,7 @@ def synonyms(word):
     return list(set(syns)) # remove duplicates
 
 def synonyms_with_scores(sentence, i):
-    return [(syn, score(replace(sentence, i, syn), i))
+    return [[syn, score(replace(sentence, i, syn), i)]
             for syn in synonyms(sentence[i])]
 
 def best(fn, lst):
