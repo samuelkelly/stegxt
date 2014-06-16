@@ -50,6 +50,19 @@ def best_synonym(sentence, i):
     else:
         return (best_syn, best_score)
 
+def viable_synonyms(sentence, i):
+	syn_list = synonyms_with_scores(sentence, i)
+	max_count = 0
+	possible_syns = [];
+	for syn in syn_list:
+		if syn[1] > max_count:
+			max_count = syn[1]
+	for syn in syn_list:
+		syn[1] /= max_count
+		if syn[1] > .85: # this is the threshold check. it should probably be global or something?
+			possible_syns.append(syn[0])
+	return possible_syns
+
 def synonyms(word):
     syns = []
     for synset in wordnet.synsets(word):
