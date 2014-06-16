@@ -23,12 +23,17 @@ def ngrams(sentence, n, center):
                 for start in range(max(0, center - n + 1), 
                                    min(center + 1, len(sentence) - n + 1))]
 
-def oldscore(sentence, i):
-    return sum( [math.log(max(1, frequency(ng))) # 0 occurrences adds 0 to score
-                 for n in range(2,6)
-                 for ng in ngrams(sentence, n, i)] )
-
 def score(sentence, i):
+    word_score = 0
+    for n in range(2, 6):
+        sentence_ngrams = ngrams(sentence, n, i)
+        t = total_frequency(sentence_ngrams)
+        if t == 0:
+            break
+        word_score += math.log(max(1, t))
+    return word_score
+
+def oldscore(sentence, i):
     word_score = 0
     for j in range(2, 6):
         sentence_ngrams = ngrams(sentence, j, i)
@@ -40,6 +45,14 @@ def score(sentence, i):
         word_score += math.log(temp_score)
     return word_score
 
+def total_frequency(ngrams):
+    url = "https://books.google.com/ngrams/graph?content=" + \
+          "%2C".join(["+".join(ngram) for ngram in ngrams]) + \
+          "&case_insensitive=on&year_start=1999&year_end=2000&corpus=15&smoothing=0"
+    html = requests.get(url).text
+    m = re.findall('(\d\.(\d)+e\-\d\d)\], "parent": ""', html)
+    return sum([float(match[0]) * 11190986329.0 for match in m])
+
 def frequency(ngram):
     if ngram == []:
         return 0
@@ -47,7 +60,7 @@ def frequency(ngram):
           "+".join(ngram) + \
           "&case_insensitive=on&year_start=1999&year_end=2000&corpus=15&smoothing=3"
     html = requests.get(url).text
-    r = re.compile('.*(\d\.(\d)+e\-\d\d)\], "parent":.*', re.DOTALL)
+    r = re.compile('.*(\d\.(\d)+e\-\d\d)\], "parent": "".*', re.DOTALL)
     m = r.match(html)
     if m:
         return float(m.group(1)) * 11190986329.0
